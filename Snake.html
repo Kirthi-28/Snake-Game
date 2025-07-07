@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Snake Game</title>
+  <style>
+    body {
+      background: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      font-family: Arial, sans-serif;
+      user-select: none;
+    }
+    #instructions {
+      font-size: 16px;
+      margin-bottom: 5px;
+      color: #ccc;
+    }
+    #scoreboard {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    canvas {
+      border: 2px solid #fff;
+      background-color: #111;
+    }
+    #restartBtn {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #444;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+    #restartBtn:hover {
+      background-color: #666;
+    }
+  </style>
+</head>
+<body>
+  <div id="instructions">Use Arrow Keys to move the snake</div>
+  <div id="scoreboard">Score: 0</div>
+  <canvas id="game" width="400" height="400"></canvas>
+  <button id="restartBtn">Restart</button>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('scoreboard');
+    const restartBtn = document.getElementById('restartBtn');
+
+    const gridSize = 20;
+    const tileCount = canvas.width / gridSize;
+
+    let snake, food, dx, dy, gameOver, score;
+    let loopRunning = false;
+    let gameSpeed; // delay in ms
+
+    const INITIAL_SPEED = 200; // start slow
+    const SPEED_INCREMENT = 5; // speed up by reducing delay
+    const MIN_SPEED = 50;       // max speed (lowest delay)
+
+    function initGame() {
+      snake = [{ x: 10, y: 10 }];
+      food = { x: 15, y: 15 };
+      dx = 1; // Start moving right
+      dy = 0;
+      gameOver = false;
+      score = 0;
+      gameSpeed = INITIAL_SPEED;
+      scoreDisplay.textContent = `Score: ${score}`;
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'ArrowUp' && dy === 0) {
+        dx = 0; dy = -1;
+      } else if (e.key === 'ArrowDown' && dy === 0) {
+        dx = 0; dy = 1;
+      } else if (e.key === 'ArrowLeft' && dx === 0) {
+        dx = -1; dy = 0;
+      } else if (e.key === 'ArrowRight' && dx === 0) {
+        dx = 1; dy = 0;
+      }
+    });
+
+    restartBtn.addEventListener('click', () => {
+      initGame();
+      if (!loopRunning) {
+        loopRunning = true;
+        gameLoop();
+      }
+    });
+
+    function gameLoop() {
+      if (gameOver) {
+        loopRunning = false;
+        ctx.fillStyle = 'white';
+        ctx.font = '30px Arial';
+        ctx.fillText('Game Over!', 120, 200);
+        return;
+      }
+
+      update();
+      draw();
+      setTimeout(gameLoop, gameSpeed);
+    }
+
+    function update() {
+      const head = { x: snake[0].x + dx, y: snake[0].y + dy };
+
+      if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+        gameOver = true;
+        return;
+      }
+
+      for (let segment of snake) {
+        if (head.x === segment.x && head.y === segment.y) {
+          gameOver = true;
+          return;
+        }
+      }
+
+      snake.unshift(head);
+
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        scoreDisplay.textContent = `Score: ${score}`;
+        // Speed up the game, but cap the minimum delay
+        gameSpeed = Math.max(MIN_SPEED, gameSpeed - SPEED_INCREMENT);
+
+        // Place new food randomly
+        food = {
+          x: Math.floor(Math.random() * tileCount),
+          y: Math.floor(Math.random() * tileCount),
+        };
+      } else {
+        snake.pop();
+      }
+    }
+
+    function draw() {
+      ctx.fillStyle = '#111';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw food
+      ctx.fillStyle = 'red';
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize, gridSize);
+
+      // Draw snake
+      ctx.fillStyle = 'lime';
+      for (let segment of snake) {
+        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize - 1, gridSize - 1);
+      }
+    }
+
+    // Start game automatically on page load
+    initGame();
+    loopRunning = true;
+    gameLoop();
+  </script>
+</body>
+</html>
