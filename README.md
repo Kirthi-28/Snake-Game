@@ -1,4 +1,4 @@
-# 🐍 Snake Game
+# 🐍 Snake Game By Kirthi
 
 A classic **Snake Game** built with pure **HTML, CSS, and JavaScript** — no libraries or frameworks required.
 
